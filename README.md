@@ -1,8 +1,22 @@
 # PepGLAD: Full-Atom Peptide Design with Geometric Latent Diffusion
 
-TODO: cover
+![cover](./assets/cover.png)
 
 ## Quick Links
+
+- [Setup](#setup)
+    - [Environment](#environment)
+    - [Datasets](#datasets)
+    - [Trained Weights](#trained-weights)
+- [Usage](#usage)
+    - [Peptide Sequence-Structure Co-Design](#peptide-sequence-structure-co-design)
+    - [Peptide Binding Structure Prediction](#peptide-binding-structure-prediction)
+- [Reproduction of Paper Experiments](#reproduction-of-paper-experiments)
+    - [Codesign](#codesign)
+    - [Binding Conformation Generation](#binding-conformation-generation)
+- [Contact](#contact)
+- [Reference](#reference)
+
 
 ## Setup
 
@@ -22,8 +36,15 @@ Don't forget to activate the environment before running the codes:
 conda activate PepGLAD
 ```
 
+#### (Optional) pyRosetta
 
-### Datasets
+PyRosetta is used to calculate interface energy of generated peptides. If you are interested in it, please follow the instruction [here](https://www.pyrosetta.org/downloads) to install.
+
+### (Optional) Datasets
+
+These datasets are only used for benchmarking models. If you just want to use the trained weights for inferencing on your cases, there is no need to download these datasets.
+
+#### PepBench
 
 1. Download
 
@@ -46,42 +67,136 @@ tar zxvf ./datasets/ProtFrag.tar.gz -C ./datasets
 
 3. Process
 
-### (Optional) Trained Weights
+```bash
+python -m scripts.data_process.process --index ./datasets/train_valid/all.txt  --out_dir ./datasets/train_valid/processed  # train/validation set
+python -m scripts.data_process.process --index ./datasets/LNR/test.txt  --out_dir ./datasets/LNR/processed  # test set
+python -m scripts.data_process.process --index ./datasets/ProtFrag/all.txt --out_dir ./datasets/ProtFrag/processed # augmentation dataset
+```
 
-TODO: in release
+The index of processed data for train/validation splits need to be generated as follows, which will result in `datasets/train_valid/processed/train_index.txt` and `datasets/train_valid/processed/valid_index.txt`:
+
+```bash
+python -m scripts.data_process.split --train_index datasets/train_valid/train.txt --valid_index datasets/train_valid/valid.txt --processed_dir datasets/train_valid/processed/
+```
+
+#### PepBDB
+
+1. Download
+
+```bash
+wget http://huanglab.phys.hust.edu.cn/pepbdb/db/download/pepbdb-20200318.tgz -O ./datasets/pepbdb.tgz
+```
+
+2. Decompress
+
+```bash
+tar zxvf ./datasets/pepbdb.tgz -C ./datasets/pepbdb
+```
+
+
+3. Process
+
+```bash
+python -m scripts.data_process.pepbdb --index ./datasets/pepbdb/peptidelist.txt --out_dir ./datasets/pepbdb/processed
+python -m scripts.data_process.split --train_index ./datasets/pepbdb/train.txt --valid_index ./datasets/pepbdb/valid.txt --test_index ./datasets/pepbdb/test.txt --processed_dir datasets/pepbdb/processed/
+mv ./datasets/pepbdb/processed/pdbs ./dataset/pepbdb  # re-locate
+```
+
+
+### Trained Weights
+
+- codesign: `./checkpoint/codesign.ckpt`
+- conformation generation: `./checkpoints/fixseq.ckpt`
 
 
 ## Usage
 
 ### Peptide Sequence-Structure Co-Design
 
-### Peptide Binding Structure Prediction
+Take `./assets/1ssc_A_B.pdb` as an example, where chain A is the target protein:
+
+```bash
+# obtain the binding site, which might also be manually crafted or from other ligands (e.g. small molecule, antibodies)
+python -m api.detect_pocket --pdb assets/1ssc_A_B.pdb --target_chains A --ligand_chains B --out assets/1ssc_A_pocket.json
+# sequence-structure codesign with length in [8, 15)
+CUDA_VISIBLE_DEVICES=0 python -m api.run \
+    --mode codesign \
+    --pdb assets/1ssc_A_B.pdb \
+    --pocket assets/1ssc_A_pocket.json \
+    --out_dir ./output/codesign \
+    --length_min 8 \
+    --length_max 15 \
+    --n_samples 10
+```
+Then 10 generations will be outputed under the folder `./output/struct_pred`.
+
+### Peptide Binding Conformation Generation
+
+Take `./assets/1ssc_A_B.pdb` as an example, where chain A is the target protein:
+
+```bash
+# obtain the binding site, which might also be manually crafted or from other ligands (e.g. small molecule, antibodies)
+python -m api.detect_pocket --pdb assets/1ssc_A_B.pdb --target_chains A --ligand_chains B --out assets/1ssc_A_pocket.json
+# generate binding conformation
+CUDA_VISIBLE_DEVICES=0 python -m api.run \
+    --mode struct_pred \
+    --pdb assets/1ssc_A_B.pdb \
+    --pocket assets/1ssc_A_pocket.json \
+    --out_dir ./output/struct_pred \
+    --peptide_seq PYVPVHFDASV \
+    --n_samples 10
+```
+Then 10 conformations will be outputed under the folder `./output/struct_pred`.
 
 
 ## Reproduction of Paper Experiments
 
+Each task requires the following steps, which we have integrated into the script `./scripts/run_exp_pipe.sh`:
+
+1. Train autoencoder
+2. Train latent diffusion model
+3. Calculate distribution of latent distances between consecutive residues
+4. Generation & Evaluation
+
+On the other hand, if you want to evaluate existing checkpoints, please follow the instructions below (e.g. conformation generation):
+
+```bash
+# generate results on the test set and save to ./results/fixseq
+python generate.py --config configs/pepbench/test_fixseq.yaml --ckpt checkpoints/fixseq.ckpt --gpu 0 --save_dir ./results/fixseq
+# calculate metrics
+python cal_metrics.py --results ./results/fixseq/results.jsonl
+```
+
 ### Codesign
 
-Train autoencoder
+Codesign experiments on PepBench:
 
-Train latent diffusion
+```bash
+GPU=0 bash scripts/run_exp_pipe.sh pepbench_codesign configs/pepbench/autoencoder/train_codesign.yaml configs/pepbench/ldm/train_codesign.yaml configs/pepbench/ldm/setup_latent_guidance.yaml configs/pepbench/test_codesign.yaml
+```
 
-Inference
-
-Evaluation
 
 ### Binding Conformation Generation
 
-Train autoencoder
+Conformation generation experiments on PepBench:
 
-Train latent diffusion
-
-Inference
-
-Evaluation
+```bash
+GPU=0 bash scripts/run_exp_pipe.sh pepbench_fixseq configs/pepbench/autoencoder/train_fixseq.yaml configs/pepbench/ldm/train_fixseq.yaml configs/pepbench/ldm/setup_latent_guidance.yaml configs/pepbench/test_fixseq.yaml
+```
 
 ## Contact
 
 Thank you for your interest in our work!
 
 Please feel free to ask about any questions about the algorithms, codes, as well as problems encountered in running them so that we can make it clearer and better. You can either create an issue in the github repo or contact us at jackie_kxz@outlook.com.
+
+## Reference
+
+```bibtex
+@article{kong2024full,
+  title={Full-atom peptide design with geometric latent diffusion},
+  author={Kong, Xiangzhe and Huang, Wenbing and Liu, Yang},
+  journal={arXiv preprint arXiv:2402.13555},
+  year={2024}
+}
+```

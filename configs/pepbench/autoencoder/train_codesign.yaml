@@ -1,0 +1,66 @@
+dataset:
+  train:
+    - class: CoDesignDataset
+      mmap_dir: ./datasets/train_valid/processed
+      specify_index: ./datasets/train_valid/processed/train_index.txt
+      backbone_only: false
+      cluster: ./datasets/train_valid/train.cluster
+    - class: CoDesignDataset
+      mmap_dir: ./datasets/ProtFrag/processed
+      backbone_only: false
+  valid:
+    class: CoDesignDataset
+    mmap_dir: ./datasets/train_valid/processed
+    specify_index: ./datasets/train_valid/processed/valid_index.txt
+    backbone_only: false
+
+dataloader:
+  shuffle: true
+  num_workers: 4
+  wrapper:
+    class: DynamicBatchWrapper
+    complexity: n**2
+    ubound_per_batch: 60000  # batch size ~24
+
+trainer:
+  class: AutoEncoderTrainer
+  config:
+    max_epoch: 100
+    save_topk: 10
+    save_dir: ./ckpts/autoencoder_codesign
+    patience: 10
+    metric_min_better: true
+
+    optimizer:
+      class: AdamW
+      lr: 1.0e-4
+    
+    scheduler:
+      class: ReduceLROnPlateau
+      factor: 0.8
+      patience: 5
+      mode: min
+      frequency: val_epoch
+      min_lr: 5.0e-6
+
+model:
+  class: AutoEncoder
+  embed_size: 128
+  hidden_size: 128
+  latent_size: 8
+  latent_n_channel: 1
+  n_layers: 3
+  n_channel: 14  # all atom
+  h_kl_weight: 0.3
+  z_kl_weight: 0.5
+  coord_loss_ratio: 0.5
+  coord_loss_weights:
+    Xloss: 1.0
+    ca_Xloss: 1.0
+    bb_bond_lengths_loss: 1.0
+    sc_bond_lengths_loss: 1.0
+    bb_dihedral_angles_loss: 0.0
+    sc_chi_angles_loss: 0.5
+  relative_position: false
+  anchor_at_ca: true
+  mask_ratio: 0.25

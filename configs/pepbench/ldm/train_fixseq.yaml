@@ -1,0 +1,61 @@
+dataset:
+  train:
+    class: CoDesignDataset
+    mmap_dir: ./datasets/train_valid/processed
+    specify_index: ./datasets/train_valid/processed/train_index.txt
+    backbone_only: false
+    cluster: ./datasets/train_valid/train.cluster
+    use_covariance_matrix: true
+  valid:
+    class: CoDesignDataset
+    mmap_dir: ./datasets/train_valid/processed
+    specify_index: ./datasets/train_valid/processed/valid_index.txt
+    backbone_only: false
+    use_covariance_matrix: true
+
+dataloader:
+  shuffle: true
+  num_workers: 4
+  wrapper:
+    class: DynamicBatchWrapper
+    complexity: n**2
+    ubound_per_batch: 60000  # batch size ~32
+
+trainer:
+  class: LDMTrainer
+  criterion: RMSD
+  config:
+    max_epoch: 1000 # the best checkpoint will be obtained at about 720 epoch
+    save_topk: 10
+    val_freq: 10
+    save_dir: ./ckpts/LDM_fixseq
+    patience: 10
+    metric_min_better: true
+
+    optimizer:
+      class: AdamW
+      lr: 1.0e-4
+
+    scheduler:
+      class: ReduceLROnPlateau
+      factor: 0.6
+      patience: 3
+      mode: min
+      frequency: val_epoch
+      min_lr: 5.0e-6
+
+model:
+  class: LDMPepDesign
+  autoencoder_ckpt: ""
+  autoencoder_no_randomness: true
+  hidden_size: 128
+  num_steps: 100
+  n_layers: 3
+  n_rbf: 32
+  cutoff: 3.0 # the coordinates are in standard space
+  dist_rbf: 0
+  dist_rbf_cutoff: 0.0
+  diffusion_opt:
+    trans_seq_type: Diffusion
+    trans_pos_type: Diffusion
+  mode: fixseq
