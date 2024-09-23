@@ -108,8 +108,11 @@ mv ./datasets/pepbdb/processed/pdbs ./dataset/pepbdb  # re-locate
 - codesign: `./checkpoint/codesign.ckpt`
 - conformation generation: `./checkpoints/fixseq.ckpt`
 
+Both can be downloaded at the [release page](https://github.com/THUNLP-MT/PepGLAD/releases/tag/v1.0).
 
 ## Usage
+
+:warning: Before using the following codes, please first download the trained weights mentioned above.
 
 ### Peptide Sequence-Structure Co-Design
 
