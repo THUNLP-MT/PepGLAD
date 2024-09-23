@@ -48,7 +48,7 @@ These datasets are only used for benchmarking models. If you just want to use th
 
 1. Download
 
-The datasets are uploaded to Zenodo at [this url](https://zenodo.org/records/13358011). You can download them as follows:
+The datasets, which are originally introduced in this paper, are uploaded to Zenodo at [this url](https://zenodo.org/records/13358011). You can download them as follows:
 
 ```bash
 mkdir datasets  # all datasets will be put into this directory
