@@ -48,13 +48,13 @@ These datasets are only used for benchmarking models. If you just want to use th
 
 1. Download
 
-The datasets, which are originally introduced in this paper, are uploaded to Zenodo at [this url](https://zenodo.org/records/13358011). You can download them as follows:
+The datasets, which are originally introduced in this paper, are uploaded to Zenodo at [this url](https://zenodo.org/records/13373108). You can download them as follows:
 
 ```bash
 mkdir datasets  # all datasets will be put into this directory
-wget https://zenodo.org/records/13358011/files/train_valid.tar.gz?download=1 -O ./datasets/train_valid.tar.gz   # training/validation
-wget https://zenodo.org/records/13358011/files/LNR.tar.gz?download=1 -O ./datasets/LNR.tar.gz   # test set
-wget https://zenodo.org/records/13358011/files/ProtFrag.tar.gz?download=1 -O ./datasets/ProtFrag.tar.gz     # augmentation dataset
+wget https://zenodo.org/records/13373108/files/train_valid.tar.gz?download=1 -O ./datasets/train_valid.tar.gz   # training/validation
+wget https://zenodo.org/records/13373108/files/LNR.tar.gz?download=1 -O ./datasets/LNR.tar.gz   # test set
+wget https://zenodo.org/records/13373108/files/ProtFrag.tar.gz?download=1 -O ./datasets/ProtFrag.tar.gz     # augmentation dataset
 ```
 
 2. Decompresss
