@@ -17,5 +17,5 @@ if not os.path.exists(CACHE_DIR):
 # IMPORTANT: change it to your path to DockQ project)
 DOCKQ_DIR = os.path.join(PROJ_DIR, 'evaluation', 'DockQ')
 if not os.path.exists(DOCKQ_DIR):
-    os.system(f'cd {os.path.join(PROJ_DIR, "evaluation")}; git clone https://github.com/bjornwallner/DockQ.git')
+    os.system(f'cd {os.path.join(PROJ_DIR, "evaluation")}; git clone --branch v1.0 --depth 1 https://github.com/bjornwallner/DockQ.git')
     os.system(f'cd {DOCKQ_DIR}; make')
