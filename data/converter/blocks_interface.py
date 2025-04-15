@@ -58,19 +58,49 @@ def add_cb(input_array):
     return CB #np.array([N,CA,C,CB,O])
 
 
+# def blocks_to_cb_coords(blocks):
+#     cb_coords = []
+#     for block in blocks:
+#         try:
+#             cb_coords.append(block.get_unit_by_name('CB').get_coord())
+#         except KeyError:
+#             tmp_coord = np.array([
+#                block.get_unit_by_name('N').get_coord(),
+#                block.get_unit_by_name('CA').get_coord(),
+#                block.get_unit_by_name('C').get_coord(),
+#                block.get_unit_by_name('O').get_coord()
+#             ])
+#             cb_coords.append(add_cb(tmp_coord))
+#     return np.array(cb_coords)
+
 def blocks_to_cb_coords(blocks):
+    """MODIFIED to work for non-standard peptides"""
     cb_coords = []
     for block in blocks:
-         try:
-              cb_coords.append(block.get_unit_by_name('CB').get_coord())
-         except KeyError:
-              tmp_coord = np.array([
+        try:
+            # First try to get actual CB atom
+            cb_coords.append(block.get_unit_by_name('CB').get_coord())
+        except KeyError:
+            try:
+                # Try to use backbone atoms to calculate virtual CB
+                tmp_coord = np.array([
                    block.get_unit_by_name('N').get_coord(),
                    block.get_unit_by_name('CA').get_coord(),
                    block.get_unit_by_name('C').get_coord(),
                    block.get_unit_by_name('O').get_coord()
-              ])
-              cb_coords.append(add_cb(tmp_coord))
+                ])
+                cb_coords.append(add_cb(tmp_coord))
+            except KeyError:
+                # For non-standard residues, use center of carbon atoms
+                carbon_atoms = [unit for unit in block.units if unit.element == 'C']
+                if carbon_atoms:  # If there are carbon atoms
+                    coords = np.array([atom.get_coord() for atom in carbon_atoms])
+                    center_of_mass = coords.mean(axis=0)
+                    cb_coords.append(center_of_mass)
+                else:  # If no carbon atoms, use center of all atoms
+                    coords = np.array([unit.get_coord() for unit in block.units])
+                    center_of_mass = coords.mean(axis=0)
+                    cb_coords.append(center_of_mass)
     return np.array(cb_coords)
 
 

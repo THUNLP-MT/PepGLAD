@@ -42,13 +42,12 @@ def pdb_to_list_blocks(pdb: str, selected_chains: Optional[List[str]]=None, retu
         break
 
     for chain in structure.get_chains():
-
         _id = chain.get_id()
         if (selected_chains is not None) and (_id not in selected_chains):
             continue
 
         residues, res_ids = [], {}
-
+        
         for residue in chain:
             abrv = residue.get_resname()
             hetero_flag, res_number, insert_code = residue.get_id()
@@ -65,7 +64,8 @@ def pdb_to_list_blocks(pdb: str, selected_chains: Optional[List[str]]=None, retu
             # filter Hs because not all data include them
             atoms = [ Atom(atom.get_id(), atom.get_coord().tolist(), atom.element) for atom in residue if atom.element != 'H' ]
             block = Block(abrv, atoms, id=(res_number, insert_code))
-            if block.is_residue():
+            
+            if block.is_residue() or block.is_peptide_residue(): # MODIFIED
                 residues.append(block)
                 res_ids[res_id] = True
         
