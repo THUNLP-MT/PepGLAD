@@ -6,16 +6,23 @@
 
 - [Setup](#setup)
     - [Environment](#environment)
-    - [Datasets](#datasets)
+    - [Datasets](#optional-datasets)
     - [Trained Weights](#trained-weights)
 - [Usage](#usage)
     - [Peptide Sequence-Structure Co-Design](#peptide-sequence-structure-co-design)
-    - [Peptide Binding Structure Prediction](#peptide-binding-structure-prediction)
+    - [Peptide Binding Conformation Generation](#peptide-binding-conformation-generation)
 - [Reproduction of Paper Experiments](#reproduction-of-paper-experiments)
     - [Codesign](#codesign)
     - [Binding Conformation Generation](#binding-conformation-generation)
 - [Contact](#contact)
 - [Reference](#reference)
+
+## Updates
+
+Changes for compatibilities and extended functionalities are saved in [beta](https://github.com/THUNLP-MT/PepGLAD/tree/beta) branch. Thank [@Barry0121](https://github.com/Barry0121) for the help.
+
+- pyTorch 2.6.0 and openmm 8.2.0 are supported, with new environment configure at [2025_env.yaml](https://github.com/THUNLP-MT/PepGLAD/blob/beta/2025_env.yml).
+- Support non-canonical amino acids in `detect_pocket.py`.
 
 
 ## Setup
