@@ -207,6 +207,34 @@ class Block:
     
     def is_residue(self):
         return self.has_unit('CA') and self.has_unit('N') and self.has_unit('C') and self.has_unit('O')
+    
+    def is_peptide_residue(self):
+        """
+        Check if a block represents a peptide-like residue, even if non-standard.
+        This is more permissive than is_residue() which requires standard backbone atoms.
+
+        Returns:
+            bool: True if the block likely represents a peptide-like residue
+        """
+        # If it's already recognized as a standard residue, return True
+        if self.is_residue():
+            return True
+
+        # For HETATM records with 'LIG' or similar labels
+        if self.abrv in [
+            'LIG', 'UNL', 'UNK', 'MSE',
+            'ALA', 'ARG', 'ASP', 'CYS', 'GLN', 'GLU', 'GLY', 'LEU', 'THR', 'TRP', 'VAL',]:
+            # Check if it has at least one carbon atom (most peptide-like molecules will)
+            has_carbon = any(unit.element == 'C' for unit in self.units)
+
+            # Make sure it has a reasonable number of atoms (not just a single atom)
+            has_multiple_atoms = len(self.units) > 3
+
+            return has_carbon and has_multiple_atoms
+
+        # Add more specific checks here if needed for other types of residues
+
+        return False
    
     @classmethod
     def from_tuple(self, data):

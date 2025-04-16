@@ -42,6 +42,7 @@ class DesignDataset(torch.utils.data.Dataset):
             epitope = json.load(fin)
         to_str = lambda pos: f'{pos[0]}-{pos[1]}'
         epi_map = {}
+        
         for chain_name, pos in epitope:
             if chain_name not in epi_map:
                 epi_map[chain_name] = {}
@@ -154,7 +155,7 @@ def design(mode, ckpt, gpu, pdbs, epitope_defs, n_samples, out_dir,
         identifiers = [splitext(basename(pdb))[0] for pdb in pdbs]
     # load model
     device = torch.device('cpu' if gpu == -1 else f'cuda:{gpu}')
-    model = torch.load(ckpt, map_location='cpu')
+    model = torch.load(ckpt, map_location='cpu', weights_only=False)
     model.to(device)
     model.eval()
 

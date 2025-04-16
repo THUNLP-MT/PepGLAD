@@ -8,11 +8,12 @@ from openmm import app as openmm_app
 from openmm import unit
 ENERGY = unit.kilocalories_per_mole
 LENGTH = unit.angstroms
+FORCE = unit.kilojoules_per_mole/unit.nanometer 
 
 
 class ForceFieldMinimizer(object):
 
-    def __init__(self, stiffness=10.0, max_iterations=0, tolerance=2.39*unit.kilocalories_per_mole, platform='CUDA'):
+    def __init__(self, stiffness=10.0, max_iterations=0, tolerance=2.39*FORCE, platform='CUDA'):
         super().__init__()
         self.stiffness = stiffness
         self.max_iterations = max_iterations
